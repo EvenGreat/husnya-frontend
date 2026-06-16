@@ -1,50 +1,23 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import GeorgetteAnarkali from "../assets/image-sample/IMG_7332.jpeg.webp";
 import ChikankariSuits from "../assets/image-sample/PDP_PAGE___website_16.jpg";
 import pureLucknavi from "../assets/image-sample/chikankari suit.jpg";
 import Saree from "../assets/image-sample/saree.jpg";
-
-
-const categories = [
-    { name: "Chikankari Suits", icon: "🪡", tag: "Bestseller" },
-    { name: "Women Kurtis", icon: "👗", tag: "New" },
-    { name: "Sarees", icon: "🌸", tag: "" },
-    { name: "Lehengas", icon: "✨", tag: "Trending" },
-    { name: "Dupattas", icon: "🧣", tag: "" },
-    { name: "Men's Wear", icon: "👔", tag: "" },
-    { name: "Kids Ethnic", icon: "🎀", tag: "New" },
-    { name: "Accessories", icon: "💍", tag: "" },
-];
+import HeroSlider from "../components/Heroslider";
 
 const featured = [
-    {
-        name: "Pure Lucknowi Chikankari",
-        price: "₹1,299",
-        original: "₹2,499",
-        img: pureLucknavi,
-        badge: "52% OFF"
-    },
-    {
-        name: "Georgette Anarkali Set",
-        price: "₹2,199",
-        original: "₹3,800",
-        img: GeorgetteAnarkali,
-        badge: "42% OFF"
-    },
-    {
-        name: "Embroidered Cotton Kurti",
-        price: "₹899",
-        original: "₹1,599",
-        img: ChikankariSuits,
-        badge: "44% OFF"
-    },
-    {
-        name: "Silk Chikankari Saree",
-        price: "₹3,499",
-        original: "₹5,999",
-        img: Saree,
-        badge: "42% OFF"
-    }
+    { name: "Pure Lucknowi Chikankari", price: "₹1,299", original: "₹2,499", img: pureLucknavi, badge: "52% OFF", isNew: false, isBest: true },
+    { name: "Georgette Anarkali Set", price: "₹2,199", original: "₹3,800", img: GeorgetteAnarkali, badge: "42% OFF", isNew: true, isBest: false },
+    { name: "Embroidered Cotton Kurti", price: "₹899", original: "₹1,599", img: ChikankariSuits, badge: "44% OFF", isNew: false, isBest: false },
+    { name: "Silk Chikankari Saree", price: "₹3,499", original: "₹5,999", img: Saree, badge: "42% OFF", isNew: true, isBest: true },
+];
+
+const newArrivals = [
+    { name: "Shadow Work Kurta", price: "₹1,099", original: "₹1,899", img: ChikankariSuits, tag: "Just In" },
+    { name: "Mughal Floral Anarkali", price: "₹2,599", original: "₹4,200", img: GeorgetteAnarkali, tag: "Just In" },
+    { name: "Lakhnavi Cotton Suit", price: "₹999", original: "₹1,799", img: pureLucknavi, tag: "Trending" },
+    { name: "Tissue Silk Saree", price: "₹4,199", original: "₹6,500", img: Saree, tag: "Just In" },
+    { name: "Organza Chikankari Dupatta Set", price: "₹1,799", original: "₹3,000", img: ChikankariSuits, tag: "Trending" },
 ];
 
 const testimonials = [
@@ -53,103 +26,194 @@ const testimonials = [
     { name: "Anjali K.", loc: "Mumbai", text: "My go-to store for ethnic wear. Love every piece I've ordered.", stars: 5 },
 ];
 
-export default function HomePage() {
-    const [wishlist, setWishlist] = useState([]);
-    const toggle = (i) =>
-        setWishlist((w) => (w.includes(i) ? w.filter((x) => x !== i) : [...w, i]));
+const categories = [
+    { label: "Chikankari Suits", img: pureLucknavi },
+    { label: "Anarkali Sets", img: GeorgetteAnarkali },
+    { label: "Kurtis", img: ChikankariSuits },
+    { label: "Sarees", img: Saree },
+];
 
+const trust = [
+    { icon: "✨", title: "Authentic Craft", desc: "Handcrafted Lucknowi Chikankari embroidery." },
+    { icon: "🚚", title: "Fast Delivery", desc: "Shipping across India & worldwide." },
+    { icon: "💳", title: "Secure Payments", desc: "Safe checkout and COD available." },
+    { icon: "❤️", title: "50,000+ Customers", desc: "Trusted by women across India." },
+];
+
+const sizes = ["XS", "S", "M", "L", "XL"];
+const colors = ["bg-rose-300", "bg-stone-300", "bg-amber-200", "bg-emerald-200", "bg-indigo-200"];
+
+function Divider() {
     return (
-        <div className="font-serif bg-stone-50 text-stone-800 min-h-screen">
-            <section className="relative bg-gradient-to-br from-rose-50 via-amber-50 to-stone-100 overflow-hidden">
-                <div className="max-w-7xl mx-auto px-4 py-16 md:py-24 flex flex-col md:flex-row items-center gap-10">
-                    <div className="flex-1 text-center md:text-left">
-                        <span className="inline-block bg-rose-100 text-rose-700 text-xs font-sans uppercase tracking-widest px-3 py-1 rounded-full mb-4">New Collection 2025</span>
-                        <h1 className="text-4xl md:text-6xl font-bold leading-tight text-stone-800 mb-4">
-                            The Art of<br /><span className="text-rose-700 italic">Chikankari</span><br />Reimagined
-                        </h1>
-                        <p className="text-stone-500 font-sans text-base mb-8 max-w-md mx-auto md:mx-0">
-                            Hand-embroidered Lucknawi elegance — from breezy kurtis to bridal lehengas. Wear the craft.
-                        </p>
-                        <div className="flex gap-3 justify-center md:justify-start flex-wrap">
-                            <button className="bg-rose-700 hover:bg-rose-800 text-white font-sans font-semibold px-7 py-3 rounded-full transition shadow-md">Shop Now</button>
-                            <button className="border border-stone-400 hover:border-rose-700 hover:text-rose-700 text-stone-600 font-sans font-semibold px-7 py-3 rounded-full transition">View Lookbook</button>
-                        </div>
-                        <div className="mt-10 flex gap-8 justify-center md:justify-start font-sans">
-                            {[["10K+", "Happy Customers"], ["500+", "Designs"], ["100%", "Authentic"]].map(([n, l]) => (
-                                <div key={l} className="text-center md:text-left">
-                                    <div className="text-2xl font-bold text-rose-700">{n}</div>
-                                    <div className="text-xs text-stone-500 uppercase tracking-wider">{l}</div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                    <div className="flex-1 flex justify-center relative">
-                        <div className="w-72 h-72 md:w-96 md:h-96 rounded-full bg-rose-100 absolute opacity-40 blur-3xl"></div>
-                        <img
-                            src="https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?w=600&q=85"
-                            alt="Chikankari Fashion"
-                            className="relative w-64 md:w-80 h-80 md:h-96 object-cover rounded-3xl shadow-2xl border-4 border-white"
-                        />
-                        <div className="absolute bottom-4 left-0 md:-left-6 bg-white rounded-2xl shadow-lg px-4 py-2 flex items-center gap-2 text-sm font-sans">
-                            <span className="text-rose-600 text-lg">🌸</span>
-                            <div>
-                                <div className="font-semibold text-stone-700">Pure Chikankari</div>
-                                <div className="text-stone-400 text-xs">Lucknawi Craft</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
+        <div className="flex items-center justify-center gap-3 my-2">
+            <div className="h-px w-16 bg-rose-200" />
+            <span className="text-rose-400 text-lg">✦</span>
+            <div className="h-px w-16 bg-rose-200" />
+        </div>
+    );
+}
 
-            {/* ── CATEGORIES ── */}
-            <section className="max-w-7xl mx-auto px-4 py-14">
-                <div className="text-center mb-10">
-                    <p className="text-xs font-sans uppercase tracking-widest text-rose-600 mb-1">Explore</p>
-                    <h2 className="text-3xl font-bold text-stone-800">Shop by Category</h2>
+function SectionHead({ eyebrow, title }) {
+    return (
+        <div className="text-center mb-10">
+            <p className="text-xs font-sans uppercase tracking-[0.25em] text-rose-500 mb-1">{eyebrow}</p>
+            <h2 className="text-3xl font-serif font-bold text-stone-800">{title}</h2>
+            <Divider />
+        </div>
+    );
+}
+
+/* ── Countdown timer hook ── */
+function useCountdown(targetDate) {
+    const calc = () => {
+        const diff = new Date(targetDate) - new Date();
+        if (diff <= 0) return { d: 0, h: 0, m: 0, s: 0 };
+        return {
+            d: Math.floor(diff / 86400000),
+            h: Math.floor((diff % 86400000) / 3600000),
+            m: Math.floor((diff % 3600000) / 60000),
+            s: Math.floor((diff % 60000) / 1000),
+        };
+    };
+    const [time, setTime] = useState(calc);
+    useEffect(() => {
+        const t = setInterval(() => setTime(calc()), 1000);
+        return () => clearInterval(t);
+    }, []);
+    return time;
+}
+
+function CountdownBox({ val, label }) {
+    return (
+        <div className="flex flex-col items-center bg-white/20 backdrop-blur-sm rounded-xl px-4 py-2 min-w-[56px]">
+            <span className="text-2xl font-bold font-sans tabular-nums">{String(val).padStart(2, "0")}</span>
+            <span className="text-xs font-sans uppercase tracking-widest text-rose-100">{label}</span>
+        </div>
+    );
+}
+
+/* ── Product Card (reusable) ── */
+function ProductCard({ p, i, wishlist, toggle, showSize = false }) {
+    const [selSize, setSelSize] = useState(null);
+    const [selColor, setSelColor] = useState(null);
+    return (
+        <div className="group shrink-0 w-64 md:w-72 rounded-2xl overflow-hidden border border-stone-100 hover:shadow-2xl transition-all duration-500 bg-white flex flex-col">
+            <div className="relative overflow-hidden">
+                <img src={p.img} alt={p.name} className="w-full h-72 object-cover group-hover:scale-105 transition-transform duration-700" />
+                {/* Badges row */}
+                <div className="absolute top-3 left-3 flex flex-col gap-1">
+                    <span className="bg-rose-600 text-white text-xs font-sans font-bold px-3 py-0.5 rounded-full shadow">{p.badge}</span>
+                    {p.isNew && <span className="bg-emerald-500 text-white text-xs font-sans font-bold px-3 py-0.5 rounded-full shadow">NEW</span>}
+                    {p.isBest && <span className="bg-amber-500 text-white text-xs font-sans font-bold px-3 py-0.5 rounded-full shadow">BESTSELLER</span>}
+                    {p.tag && <span className="bg-indigo-500 text-white text-xs font-sans font-bold px-3 py-0.5 rounded-full shadow">{p.tag}</span>}
                 </div>
-                <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-8 gap-4">
-                    {categories.map((c) => (
-                        <button key={c.name} className="group flex flex-col items-center gap-2 p-3 rounded-2xl hover:bg-rose-50 transition cursor-pointer relative">
-                            {c.tag && (
-                                <span className="absolute top-1 right-1 text-xs bg-rose-600 text-white rounded-full px-1.5 py-0.5 font-sans leading-none">{c.tag}</span>
-                            )}
-                            <div className="w-14 h-14 rounded-full bg-amber-50 group-hover:bg-rose-100 flex items-center justify-center text-2xl shadow-sm transition">{c.icon}</div>
-                            <span className="text-xs font-sans text-stone-600 text-center leading-tight font-medium">{c.name}</span>
-                        </button>
+                <button
+                    onClick={() => toggle(i)}
+                    className="absolute top-3 right-3 w-9 h-9 rounded-full bg-white/90 shadow-md flex items-center justify-center text-base transition hover:scale-110 hover:bg-rose-50"
+                >
+                    {wishlist.includes(i) ? "❤️" : "🤍"}
+                </button>
+                <div className="absolute inset-x-0 bottom-0 translate-y-full group-hover:translate-y-0 transition-transform duration-300 bg-rose-700/90 py-2.5 text-center">
+                    <span className="text-white text-xs font-sans font-semibold tracking-widest uppercase">Quick View</span>
+                </div>
+            </div>
+            <div className="p-4 flex flex-col gap-3 flex-1">
+                <h3 className="text-sm font-serif font-semibold text-stone-700 leading-snug">{p.name}</h3>
+                {/* Color swatches */}
+                <div className="flex gap-1.5">
+                    {colors.map((c, ci) => (
+                        <button
+                            key={ci}
+                            onClick={() => setSelColor(ci)}
+                            className={`w-5 h-5 rounded-full ${c} border-2 transition ${selColor === ci ? "border-rose-600 scale-110" : "border-white shadow-sm"}`}
+                        />
                     ))}
                 </div>
-            </section>
-
-            {/* ── FEATURED PRODUCTS ── */}
-            <section className="bg-white py-14">
-                <div className="max-w-7xl mx-auto px-4">
-                    <div className="flex items-end justify-between mb-10">
-                        <div>
-                            <p className="text-xs font-sans uppercase tracking-widest text-rose-600 mb-1">Handpicked</p>
-                            <h2 className="text-3xl font-bold text-stone-800">Featured Collection</h2>
-                        </div>
-                        <a href="#" className="text-sm font-sans text-rose-700 hover:underline hidden sm:block">View All →</a>
+                {/* Size pills */}
+                {showSize && (
+                    <div className="flex gap-1 flex-wrap">
+                        {sizes.map((s) => (
+                            <button
+                                key={s}
+                                onClick={() => setSelSize(s)}
+                                className={`text-xs font-sans px-2 py-0.5 rounded border transition ${selSize === s ? "bg-stone-800 text-white border-stone-800" : "border-stone-300 text-stone-500 hover:border-stone-600"}`}
+                            >
+                                {s}
+                            </button>
+                        ))}
                     </div>
+                )}
+                <div className="flex items-center gap-2">
+                    <span className="text-rose-700 font-bold font-sans text-base">{p.price}</span>
+                    <span className="text-stone-400 text-xs line-through font-sans">{p.original}</span>
+                </div>
+                <button className="mt-auto w-full bg-stone-800 hover:bg-rose-700 text-white text-xs font-sans font-semibold py-2.5 rounded-xl transition-colors duration-300 tracking-wide uppercase">
+                    Add to Cart
+                </button>
+            </div>
+        </div>
+    );
+}
+
+export default function HomePage() {
+    const [wishlist, setWishlist] = useState([]);
+    const toggle = (i) => setWishlist((w) => (w.includes(i) ? w.filter((x) => x !== i) : [...w, i]));
+
+    const featuredRef = useRef(null);
+    const newRef = useRef(null);
+    const [featIdx, setFeatIdx] = useState(0);
+    const [newIdx, setNewIdx] = useState(0);
+
+    const scrollCarousel = (ref, direction, setIdx, total) => {
+        const el = ref.current;
+        if (!el) return;
+        const cardW = el.children[0]?.offsetWidth + 20 || 300;
+        el.scrollBy({ left: direction * cardW, behavior: "smooth" });
+        setIdx((i) => Math.max(0, Math.min(total - 1, i + direction)));
+    };
+
+    const [tIdx, setTIdx] = useState(0);
+    useEffect(() => {
+        const t = setInterval(() => setTIdx((i) => (i + 1) % testimonials.length), 4000);
+        return () => clearInterval(t);
+    }, []);
+
+    // Sale ends 3 days from now
+    const saleEnd = new Date(Date.now() + 3 * 86400000).toISOString();
+    const { d, h, m, s } = useCountdown(saleEnd);
+
+    return (
+        <div className="font-serif bg-[#fdf8f5] text-stone-800 min-h-screen">
+
+            {/* ── HERO ── */}
+            <HeroSlider />
+
+            {/* ── MARQUEE TRUST BAR ── */}
+            <div className="bg-rose-700 text-white py-2.5 overflow-hidden">
+                <div className="flex gap-12 animate-[marquee_22s_linear_infinite] whitespace-nowrap w-max">
+                    {[...Array(4)].flatMap((_, ri) =>
+                        trust.map((t, i) => (
+                            <span key={`${ri}-${i}`} className="text-xs font-sans uppercase tracking-widest inline-flex items-center gap-2">
+                                <span>{t.icon}</span>{t.title}
+                                <span className="text-rose-300 mx-4">|</span>
+                            </span>
+                        ))
+                    )}
+                </div>
+            </div>
+
+            {/* ── CATEGORIES ── */}
+            <section className="py-20 bg-[#fdf8f5]">
+                <div className="max-w-7xl mx-auto px-4">
+                    <SectionHead eyebrow="Explore" title="Shop By Category" />
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
-                        {featured.map((p, i) => (
-                            <div key={i} className="group rounded-2xl overflow-hidden border border-stone-100 hover:shadow-xl transition bg-stone-50">
-                                <div className="relative overflow-hidden">
-                                    <img src={p.img} alt={p.name} className="w-full h-52 object-cover group-hover:scale-105 transition duration-500" />
-                                    <span className="absolute top-2 left-2 bg-rose-600 text-white text-xs font-sans font-bold px-2 py-0.5 rounded-full">{p.badge}</span>
-                                    <button
-                                        onClick={() => toggle(i)}
-                                        className="absolute top-2 right-2 w-8 h-8 rounded-full bg-white shadow flex items-center justify-center text-sm transition hover:scale-110"
-                                    >
-                                        {wishlist.includes(i) ? "❤️" : "🤍"}
-                                    </button>
-                                </div>
-                                <div className="p-3">
-                                    <h3 className="text-sm font-semibold text-stone-700 leading-snug mb-1">{p.name}</h3>
-                                    <div className="flex items-center gap-2 mb-3">
-                                        <span className="text-rose-700 font-bold font-sans">{p.price}</span>
-                                        <span className="text-stone-400 text-xs line-through font-sans">{p.original}</span>
-                                    </div>
-                                    <button className="w-full bg-stone-800 hover:bg-rose-700 text-white text-xs font-sans font-semibold py-2 rounded-xl transition">Add to Cart</button>
+                        {categories.map((c, i) => (
+                            <div key={i} className="group cursor-pointer relative overflow-hidden rounded-2xl shadow-md hover:shadow-xl transition-shadow duration-500">
+                                <img src={c.img} alt={c.label} className="h-80 w-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                                <div className="absolute inset-0 bg-gradient-to-t from-stone-900/70 via-stone-900/10 to-transparent" />
+                                <div className="absolute bottom-0 left-0 right-0 p-4 text-center">
+                                    <h3 className="text-white font-serif font-semibold text-base tracking-wide drop-shadow">{c.label}</h3>
+                                    <span className="mt-1 inline-block text-xs font-sans text-rose-200 uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity duration-300">Shop Now →</span>
                                 </div>
                             </div>
                         ))}
@@ -157,57 +221,231 @@ export default function HomePage() {
                 </div>
             </section>
 
-            {/* ── SALE BANNER ── */}
-            <section className="max-w-7xl mx-auto px-4 py-10">
-                <div className="rounded-3xl bg-gradient-to-r from-rose-700 to-rose-500 text-white flex flex-col md:flex-row items-center justify-between gap-6 px-8 py-10">
-                    <div>
-                        <p className="font-sans text-rose-200 uppercase tracking-widest text-xs mb-1">Limited Time</p>
-                        <h3 className="text-3xl font-bold mb-1">Bridal Season Sale</h3>
-                        <p className="text-rose-100 font-sans text-sm">Up to 60% off on Bridal Lehengas & Anarkali Sets</p>
+            {/* ── NEW ARRIVALS ── */}
+            <section className="py-20 bg-white">
+                <div className="max-w-7xl mx-auto px-4">
+                    <div className="flex items-end justify-between mb-10">
+                        <div>
+                            <p className="text-xs font-sans uppercase tracking-[0.25em] text-rose-500 mb-1">Fresh Drops</p>
+                            <h2 className="text-3xl font-serif font-bold text-stone-800">New Arrivals</h2>
+                            <Divider />
+                        </div>
+                        <div className="flex items-center gap-3">
+                            <button
+                                onClick={() => scrollCarousel(newRef, -1, setNewIdx, newArrivals.length)}
+                                className="w-9 h-9 rounded-full border border-stone-300 flex items-center justify-center text-stone-600 hover:bg-rose-600 hover:text-white hover:border-rose-600 transition"
+                            >‹</button>
+                            <button
+                                onClick={() => scrollCarousel(newRef, 1, setNewIdx, newArrivals.length)}
+                                className="w-9 h-9 rounded-full border border-stone-300 flex items-center justify-center text-stone-600 hover:bg-rose-600 hover:text-white hover:border-rose-600 transition"
+                            >›</button>
+                            <a href="#" className="text-sm font-sans text-rose-700 hover:underline ml-2 hidden sm:block">View All →</a>
+                        </div>
                     </div>
-                    <button className="bg-white text-rose-700 font-sans font-bold px-8 py-3 rounded-full hover:bg-rose-50 transition shadow-md whitespace-nowrap">
+                    <div
+                        ref={newRef}
+                        className="flex gap-5 overflow-x-auto snap-x snap-mandatory scroll-smooth pb-4"
+                        style={{ scrollbarWidth: "none" }}
+                    >
+                        {newArrivals.map((p, i) => (
+                            <ProductCard key={i} p={p} i={i + 100} wishlist={wishlist} toggle={toggle} showSize={true} />
+                        ))}
+                    </div>
+                    {/* Dots */}
+                    <div className="flex justify-center gap-2 mt-5">
+                        {newArrivals.map((_, i) => (
+                            <button key={i} onClick={() => setNewIdx(i)}
+                                className={`rounded-full transition-all duration-300 ${newIdx === i ? "bg-rose-600 w-6 h-2" : "bg-stone-300 w-2 h-2"}`} />
+                        ))}
+                    </div>
+                </div>
+            </section>
+
+            {/* ── SALE BANNER WITH COUNTDOWN ── */}
+            <section className="max-w-7xl mx-auto px-4 py-10">
+                <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-rose-800 via-rose-700 to-rose-500 text-white flex flex-col md:flex-row items-center justify-between gap-8 px-10 py-12 shadow-2xl">
+                    <div className="absolute -right-16 -top-16 w-64 h-64 rounded-full bg-white/5 pointer-events-none" />
+                    <div className="absolute -left-10 -bottom-10 w-48 h-48 rounded-full bg-white/5 pointer-events-none" />
+                    <div className="relative z-10">
+                        <p className="font-sans text-rose-200 uppercase tracking-[0.25em] text-xs mb-2">Limited Time</p>
+                        <h3 className="text-4xl font-serif font-bold mb-1">Bridal Season Sale</h3>
+                        <p className="text-rose-100 font-sans text-sm mb-5">Up to 60% off on Bridal Lehengas & Anarkali Sets</p>
+                        {/* Countdown */}
+                        <div className="flex gap-3">
+                            <CountdownBox val={d} label="Days" />
+                            <CountdownBox val={h} label="Hrs" />
+                            <CountdownBox val={m} label="Min" />
+                            <CountdownBox val={s} label="Sec" />
+                        </div>
+                    </div>
+                    <button className="relative z-10 bg-white text-rose-700 font-sans font-bold px-10 py-3.5 rounded-full hover:bg-rose-50 transition shadow-lg whitespace-nowrap tracking-wide uppercase text-sm">
                         Shop the Sale
                     </button>
                 </div>
             </section>
 
-            {/* ── TESTIMONIALS ── */}
-            <section className="bg-amber-50 py-14">
-                <div className="max-w-5xl mx-auto px-4">
-                    <div className="text-center mb-10">
-                        <p className="text-xs font-sans uppercase tracking-widest text-rose-600 mb-1">Reviews</p>
-                        <h2 className="text-3xl font-bold text-stone-800">What Our Customers Say</h2>
+            {/* ── FEATURED COLLECTION CAROUSEL ── */}
+            <section className="py-20 bg-[#fdf8f5]">
+                <div className="max-w-7xl mx-auto px-4">
+                    <div className="flex items-end justify-between mb-10">
+                        <div>
+                            <p className="text-xs font-sans uppercase tracking-[0.25em] text-rose-500 mb-1">Handpicked</p>
+                            <h2 className="text-3xl font-serif font-bold text-stone-800">Featured Collection</h2>
+                            <Divider />
+                        </div>
+                        <div className="flex items-center gap-3">
+                            <button
+                                onClick={() => scrollCarousel(featuredRef, -1, setFeatIdx, featured.length)}
+                                className="w-9 h-9 rounded-full border border-stone-300 flex items-center justify-center text-stone-600 hover:bg-rose-600 hover:text-white hover:border-rose-600 transition"
+                            >‹</button>
+                            <button
+                                onClick={() => scrollCarousel(featuredRef, 1, setFeatIdx, featured.length)}
+                                className="w-9 h-9 rounded-full border border-stone-300 flex items-center justify-center text-stone-600 hover:bg-rose-600 hover:text-white hover:border-rose-600 transition"
+                            >›</button>
+                            <a href="#" className="text-sm font-sans text-rose-700 hover:underline ml-2 hidden sm:block">View All →</a>
+                        </div>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        {testimonials.map((t, i) => (
-                            <div key={i} className="bg-white rounded-2xl p-6 shadow-sm border border-stone-100">
-                                <div className="text-rose-500 mb-3 text-sm">{"★".repeat(t.stars)}</div>
-                                <p className="text-stone-600 font-sans text-sm italic mb-4">"{t.text}"</p>
-                                <div className="flex items-center gap-2">
-                                    <div className="w-8 h-8 rounded-full bg-rose-100 flex items-center justify-center text-rose-700 font-bold text-xs">{t.name[0]}</div>
-                                    <div>
-                                        <div className="text-sm font-semibold text-stone-700">{t.name}</div>
-                                        <div className="text-xs text-stone-400 font-sans">{t.loc}</div>
-                                    </div>
-                                </div>
+                    <div
+                        ref={featuredRef}
+                        className="flex gap-5 overflow-x-auto snap-x snap-mandatory scroll-smooth pb-4"
+                        style={{ scrollbarWidth: "none" }}
+                    >
+                        {featured.map((p, i) => (
+                            <ProductCard key={i} p={p} i={i} wishlist={wishlist} toggle={toggle} showSize={true} />
+                        ))}
+                    </div>
+                    <div className="flex justify-center gap-2 mt-5">
+                        {featured.map((_, i) => (
+                            <button key={i} onClick={() => setFeatIdx(i)}
+                                className={`rounded-full transition-all duration-300 ${featIdx === i ? "bg-rose-600 w-6 h-2" : "bg-stone-300 w-2 h-2"}`} />
+                        ))}
+                    </div>
+                </div>
+            </section>
+
+            {/* ── WHY HUSNYA (story strip) ── */}
+            <section className="py-20 bg-rose-50 border-y border-rose-100">
+                <div className="max-w-6xl mx-auto px-4">
+                    <SectionHead eyebrow="Our Story" title="Why Husnya Chikankari?" />
+                    <div className="grid md:grid-cols-3 gap-8 text-center">
+                        {[
+                            { icon: "🪡", title: "300+ Artisans", desc: "We work directly with Lucknow's finest karigars keeping generations of craft alive." },
+                            { icon: "🌿", title: "Natural Fabrics", desc: "Pure cotton, georgette & silk — breathable, ethical, and gentle on the planet." },
+                            { icon: "🎁", title: "Gift-Ready Packaging", desc: "Every order arrives in our signature rose box — perfect for gifting." },
+                        ].map((item, i) => (
+                            <div key={i} className="bg-white rounded-2xl px-8 py-10 shadow-sm hover:shadow-md transition-shadow duration-300 flex flex-col items-center gap-4">
+                                <div className="text-5xl">{item.icon}</div>
+                                <h3 className="font-serif font-bold text-lg text-stone-800">{item.title}</h3>
+                                <p className="text-sm font-sans text-stone-500 leading-relaxed">{item.desc}</p>
                             </div>
                         ))}
                     </div>
                 </div>
             </section>
 
+            {/* ── TRUST PILLARS ── */}
+            <section className="py-14 bg-white border-b border-rose-100">
+                <div className="max-w-6xl mx-auto px-4">
+                    <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-rose-100">
+                        {trust.map((t, i) => (
+                            <div key={i} className="text-center px-6 py-8 group">
+                                <div className="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300">{t.icon}</div>
+                                <h3 className="font-serif font-bold text-stone-800 mb-1">{t.title}</h3>
+                                <p className="text-xs font-sans text-stone-500 leading-relaxed">{t.desc}</p>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </section>
+
+            {/* ── TESTIMONIALS CAROUSEL ── */}
+            <section className="py-20 bg-[#fdf8f5]">
+                <div className="max-w-3xl mx-auto px-4">
+                    <SectionHead eyebrow="Customer Love" title="What Our Customers Say" />
+                    <div className="relative overflow-hidden rounded-3xl">
+                        <div
+                            className="flex transition-transform duration-700 ease-in-out"
+                            style={{ transform: `translateX(-${tIdx * 100}%)` }}
+                        >
+                            {testimonials.map((t, i) => (
+                                <div key={i} className="min-w-full text-center px-10 py-12 bg-white border border-rose-100 shadow-sm rounded-3xl">
+                                    <div className="text-rose-500 text-xl mb-4">{"★".repeat(t.stars)}</div>
+                                    <p className="text-stone-600 font-serif italic text-lg leading-relaxed mb-6">"{t.text}"</p>
+                                    <p className="font-sans font-semibold text-stone-800 text-sm">{t.name}</p>
+                                    <p className="font-sans text-stone-400 text-xs uppercase tracking-widest">{t.loc}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                    <div className="flex justify-center gap-2 mt-6">
+                        {testimonials.map((_, i) => (
+                            <button key={i} onClick={() => setTIdx(i)}
+                                className={`rounded-full transition-all duration-300 ${tIdx === i ? "bg-rose-600 w-6 h-2" : "bg-stone-300 w-2 h-2"}`} />
+                        ))}
+                    </div>
+                </div>
+            </section>
+
+            {/* ── INSTAGRAM MOSAIC ── */}
+            <section className="py-20 bg-white">
+                <div className="max-w-7xl mx-auto px-4">
+                    <SectionHead eyebrow="Follow Us" title="@husnya_chikankari" />
+                    <div className="grid grid-cols-2 md:grid-cols-4 md:grid-rows-2 gap-3 md:h-[480px]">
+                        <div className="group relative overflow-hidden rounded-2xl md:row-span-2 cursor-pointer">
+                            <img src={pureLucknavi} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center">
+                                <span className="text-white text-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300">📷</span>
+                            </div>
+                        </div>
+                        <div className="group relative overflow-hidden rounded-2xl cursor-pointer">
+                            <img src={GeorgetteAnarkali} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center">
+                                <span className="text-white text-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300">📷</span>
+                            </div>
+                        </div>
+                        <div className="group relative overflow-hidden rounded-2xl cursor-pointer md:col-span-2 md:row-span-2">
+                            <img src={Saree} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center">
+                                <span className="text-white text-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300">📷</span>
+                            </div>
+                        </div>
+                        <div className="group relative overflow-hidden rounded-2xl cursor-pointer">
+                            <img src={ChikankariSuits} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center">
+                                <span className="text-white text-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300">📷</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="text-center mt-8">
+                        
+                           <a href="https://www.instagram.com/husnya_chikankari/"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-block border border-stone-800 text-stone-800 hover:bg-stone-800 hover:text-white font-sans font-semibold text-xs uppercase tracking-widest px-8 py-3 rounded-full transition-colors duration-300"
+                        >
+                            Follow on Instagram
+                        </a>
+                    </div>
+                </div>
+            </section>
+
             {/* ── NEWSLETTER ── */}
-            <section className="max-w-2xl mx-auto px-4 py-14 text-center">
-                <p className="text-xs font-sans uppercase tracking-widest text-rose-600 mb-1">Stay Updated</p>
-                <h2 className="text-2xl font-bold text-stone-800 mb-2">Join the Husnya Circle</h2>
-                <p className="text-stone-500 font-sans text-sm mb-6">Get new arrivals, exclusive deals & styling inspiration straight to your inbox.</p>
-                <div className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
-                    <input
-                        type="email"
-                        placeholder="Your email address"
-                        className="flex-1 border border-stone-300 rounded-full px-5 py-3 text-sm font-sans outline-none focus:border-rose-500 transition"
-                    />
-                    <button className="bg-rose-700 hover:bg-rose-800 text-white font-sans font-semibold px-6 py-3 rounded-full transition">Subscribe</button>
+            <section className="py-20 bg-[#fdf8f5] border-t border-rose-100">
+                <div className="max-w-2xl mx-auto px-4 text-center">
+                    <SectionHead eyebrow="Stay Updated" title="Join the Husnya Circle" />
+                    <p className="text-stone-500 font-sans text-sm mb-8 leading-relaxed">
+                        Get new arrivals, exclusive deals & styling inspiration straight to your inbox.
+                    </p>
+                    <div className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
+                        <input
+                            type="email"
+                            placeholder="Your email address"
+                            className="flex-1 border border-stone-300 rounded-full px-6 py-3.5 text-sm font-sans outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-100 transition"
+                        />
+                        <button className="bg-rose-700 hover:bg-rose-800 text-white font-sans font-semibold px-8 py-3.5 rounded-full transition-colors duration-300 tracking-wide shadow-md">
+                            Subscribe
+                        </button>
+                    </div>
                 </div>
             </section>
         </div>
