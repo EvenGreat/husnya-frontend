@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import Logo from "../assets/husnyalogo-5-300x296.png";
+import Logo from "../assets/husnya_logo_clean.png";
 
 const navItems = [
     {
@@ -52,33 +52,6 @@ const navItems = [
                     { label: "Kids Ethnic", href: "#" },
                     { label: "🚚 Ready to Ship", href: "#" },
                     { label: "Shop All", href: "#" },
-                ],
-            },
-        ],
-    },
-    {
-        label: "Shop by Collection",
-        href: "#",
-        mega: true,
-        columns: [
-            {
-                title: "Premium",
-                links: [
-                    { label: "Moksha Gold", href: "#" },
-                    { label: "Queen of Wands – Velvet Vows", href: "#" },
-                    { label: "Soul of Swans – Ivory & Gold", href: "#" },
-                ],
-            },
-            {
-                title: "Festive",
-                links: [{ label: "Rangeela Re", href: "#" }],
-            },
-            {
-                title: "Everyday",
-                links: [
-                    { label: "Moksha", href: "#" },
-                    { label: "Noor", href: "#" },
-                    { label: "Jalsa", href: "#" },
                 ],
             },
         ],
@@ -147,7 +120,7 @@ export default function Header() {
                         {/* Logo */}
                         <a href="#" className="flex-shrink-0">
                             <img src={Logo} alt="Husnya Fashion House"
-                                className="h-20 w-20 object-contain rounded-full mt-1"
+                                className="h-18 object-contain mt-1"
                             />
                         </a>
 
@@ -224,7 +197,7 @@ export default function Header() {
                                 <img
                                     src={Logo}
                                     alt="Husnya"
-                                    className="h-10 w-10 object-contain rounded-full"
+                                    className="h-10 object-contain"
                                 />
                                 <div>
                                     <div className="text-base font-bold text-stone-800 font-serif tracking-tight">HUSNYĀ</div>
