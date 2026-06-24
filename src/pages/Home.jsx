@@ -1,36 +1,17 @@
 import { useEffect, useRef, useState } from "react";
-import GeorgetteAnarkali from "../assets/image-sample/IMG_7332.jpeg.webp";
-import ChikankariSuits from "../assets/image-sample/PDP_PAGE___website_16.jpg";
-import pureLucknavi from "../assets/image-sample/chikankari suit.jpg";
-import Saree from "../assets/image-sample/saree.jpg";
 import HeroSlider from "../components/Heroslider";
+import { useCategories, useLatestProducts, useFeaturedProducts } from "../context/ProductContext";
+// ⬆️ Adjust this import path to match where you placed the ProductContext.jsx
+// from your project (the file that exports ProductProvider / useCategories /
+// useLatestProducts / useFeaturedProducts / useCategoryProducts).
 
-const featured = [
-    { name: "Pure Lucknowi Chikankari", price: "₹1,299", original: "₹2,499", img: pureLucknavi, badge: "52% OFF", isNew: false, isBest: true },
-    { name: "Georgette Anarkali Set", price: "₹2,199", original: "₹3,800", img: GeorgetteAnarkali, badge: "42% OFF", isNew: true, isBest: false },
-    { name: "Embroidered Cotton Kurti", price: "₹899", original: "₹1,599", img: ChikankariSuits, badge: "44% OFF", isNew: false, isBest: false },
-    { name: "Silk Chikankari Saree", price: "₹3,499", original: "₹5,999", img: Saree, badge: "42% OFF", isNew: true, isBest: true },
-];
-
-const newArrivals = [
-    { name: "Shadow Work Kurta", price: "₹1,099", original: "₹1,899", img: ChikankariSuits, tag: "Just In" },
-    { name: "Mughal Floral Anarkali", price: "₹2,599", original: "₹4,200", img: GeorgetteAnarkali, tag: "Just In" },
-    { name: "Lakhnavi Cotton Suit", price: "₹999", original: "₹1,799", img: pureLucknavi, tag: "Trending" },
-    { name: "Tissue Silk Saree", price: "₹4,199", original: "₹6,500", img: Saree, tag: "Just In" },
-    { name: "Organza Chikankari Dupatta Set", price: "₹1,799", original: "₹3,000", img: ChikankariSuits, tag: "Trending" },
-];
+// Fallback image used only if a product/category from the API has no image.
+import fallbackImg from "../assets/image-sample/chikankari suit.jpg";
 
 const testimonials = [
     { name: "Priya S.", loc: "Lucknow", text: "The Chikankari work is absolutely stunning — exactly like the original!", stars: 5 },
     { name: "Meena R.", loc: "Delhi", text: "Fast delivery, beautiful fabric, and perfect stitching. Will buy again!", stars: 5 },
     { name: "Anjali K.", loc: "Mumbai", text: "My go-to store for ethnic wear. Love every piece I've ordered.", stars: 5 },
-];
-
-const categories = [
-    { label: "Chikankari Suits", img: pureLucknavi },
-    { label: "Anarkali Sets", img: GeorgetteAnarkali },
-    { label: "Kurtis", img: ChikankariSuits },
-    { label: "Sarees", img: Saree },
 ];
 
 const trust = [
@@ -42,6 +23,46 @@ const trust = [
 
 const sizes = ["XS", "S", "M", "L", "XL"];
 const colors = ["bg-rose-300", "bg-stone-300", "bg-amber-200", "bg-emerald-200", "bg-indigo-200"];
+
+/* ── Helpers to normalize whatever shape the API returns into what the UI needs ──
+   Adjust the field names inside these two functions if your actual API response
+   uses different keys (e.g. p.title instead of p.name). */
+function formatPrice(n) {
+    if (n === undefined || n === null || isNaN(n)) return null;
+    return `₹${Number(n).toLocaleString("en-IN")}`;
+}
+
+function normalizeProduct(p) {
+    const price = p.price ?? p.sellingPrice ?? p.discountPrice ?? null;
+    const original = p.mrp ?? p.originalPrice ?? p.compareAtPrice ?? null;
+    const discountPercent =
+        price && original && original > price
+            ? Math.round(((original - price) / original) * 100)
+            : null;
+
+    const createdAt = p.createdAt ? new Date(p.createdAt) : null;
+    const isNew = createdAt ? Date.now() - createdAt.getTime() < 14 * 86400000 : false;
+
+    return {
+        id: p._id || p.id,
+        name: p.name || p.title || "Untitled Product",
+        price: formatPrice(price),
+        original: formatPrice(original),
+        img: p.images?.[0]?.url || p.images?.[0] || p.image || p.thumbnail || fallbackImg,
+        badge: discountPercent ? `${discountPercent}% OFF` : null,
+        isNew,
+        isBest: Boolean(p.isBestseller || p.isFeatured),
+        tag: isNew ? "Just In" : null,
+    };
+}
+
+function normalizeCategory(c) {
+    return {
+        id: c._id || c.id,
+        label: c.name || c.title || "Category",
+        img: c.image || c.icon || fallbackImg,
+    };
+}
 
 function Divider() {
     return (
@@ -92,6 +113,20 @@ function CountdownBox({ val, label }) {
     );
 }
 
+/* ── Skeleton card shown while a section is loading ── */
+function ProductCardSkeleton() {
+    return (
+        <div className="shrink-0 w-64 md:w-72 rounded-2xl overflow-hidden border border-stone-100 bg-white flex flex-col animate-pulse">
+            <div className="h-72 bg-stone-200" />
+            <div className="p-4 flex flex-col gap-3">
+                <div className="h-4 bg-stone-200 rounded w-3/4" />
+                <div className="h-3 bg-stone-200 rounded w-1/2" />
+                <div className="h-9 bg-stone-200 rounded-xl mt-2" />
+            </div>
+        </div>
+    );
+}
+
 /* ── Product Card (reusable) ── */
 function ProductCard({ p, i, wishlist, toggle, showSize = false }) {
     const [selSize, setSelSize] = useState(null);
@@ -102,7 +137,7 @@ function ProductCard({ p, i, wishlist, toggle, showSize = false }) {
                 <img src={p.img} alt={p.name} className="w-full h-72 object-cover group-hover:scale-105 transition-transform duration-700" />
                 {/* Badges row */}
                 <div className="absolute top-3 left-3 flex flex-col gap-1">
-                    <span className="bg-rose-600 text-white text-xs font-sans font-bold px-3 py-0.5 rounded-full shadow">{p.badge}</span>
+                    {p.badge && <span className="bg-rose-600 text-white text-xs font-sans font-bold px-3 py-0.5 rounded-full shadow">{p.badge}</span>}
                     {p.isNew && <span className="bg-emerald-500 text-white text-xs font-sans font-bold px-3 py-0.5 rounded-full shadow">NEW</span>}
                     {p.isBest && <span className="bg-amber-500 text-white text-xs font-sans font-bold px-3 py-0.5 rounded-full shadow">BESTSELLER</span>}
                     {p.tag && <span className="bg-indigo-500 text-white text-xs font-sans font-bold px-3 py-0.5 rounded-full shadow">{p.tag}</span>}
@@ -144,8 +179,8 @@ function ProductCard({ p, i, wishlist, toggle, showSize = false }) {
                     </div>
                 )}
                 <div className="flex items-center gap-2">
-                    <span className="text-rose-700 font-bold font-sans text-base">{p.price}</span>
-                    <span className="text-stone-400 text-xs line-through font-sans">{p.original}</span>
+                    {p.price && <span className="text-rose-700 font-bold font-sans text-base">{p.price}</span>}
+                    {p.original && <span className="text-stone-400 text-xs line-through font-sans">{p.original}</span>}
                 </div>
                 <button className="mt-auto w-full bg-stone-800 hover:bg-rose-700 text-white text-xs font-sans font-semibold py-2.5 rounded-xl transition-colors duration-300 tracking-wide uppercase">
                     Add to Cart
@@ -156,6 +191,15 @@ function ProductCard({ p, i, wishlist, toggle, showSize = false }) {
 }
 
 export default function HomePage() {
+    // ── Live data from ProductContext (replaces the old static arrays) ──
+    const { categories, loading: categoriesLoading, error: categoriesError } = useCategories();
+    const { products: latestProducts, loading: latestLoading, error: latestError } = useLatestProducts();
+    const { products: featuredProducts, loading: featuredLoading, error: featuredError } = useFeaturedProducts();
+
+    const normalizedCategories = categories.map(normalizeCategory);
+    const normalizedFeatured = featuredProducts.map(normalizeProduct);
+    const normalizedNewArrivals = latestProducts.map(normalizeProduct);
+
     const [wishlist, setWishlist] = useState([]);
     const toggle = (i) => setWishlist((w) => (w.includes(i) ? w.filter((x) => x !== i) : [...w, i]));
 
@@ -202,26 +246,35 @@ export default function HomePage() {
                 </div>
             </div>
 
-            {/* ── CATEGORIES ── */}
+            {/* ── CATEGORIES (live) ── */}
             <section className="py-20 bg-[#fdf8f5]">
                 <div className="max-w-7xl mx-auto px-4">
                     <SectionHead eyebrow="Explore" title="Shop By Category" />
+                    {categoriesError && (
+                        <p className="text-center text-sm font-sans text-rose-500 mb-6">
+                            Couldn't load categories right now. Please refresh.
+                        </p>
+                    )}
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
-                        {categories.map((c, i) => (
-                            <div key={i} className="group cursor-pointer relative overflow-hidden rounded-2xl shadow-md hover:shadow-xl transition-shadow duration-500">
-                                <img src={c.img} alt={c.label} className="h-80 w-full object-cover group-hover:scale-105 transition-transform duration-700" />
-                                <div className="absolute inset-0 bg-gradient-to-t from-stone-900/70 via-stone-900/10 to-transparent" />
-                                <div className="absolute bottom-0 left-0 right-0 p-4 text-center">
-                                    <h3 className="text-white font-serif font-semibold text-base tracking-wide drop-shadow">{c.label}</h3>
-                                    <span className="mt-1 inline-block text-xs font-sans text-rose-200 uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity duration-300">Shop Now →</span>
-                                </div>
-                            </div>
-                        ))}
+                        {categoriesLoading
+                            ? [...Array(4)].map((_, i) => (
+                                  <div key={i} className="h-80 w-full rounded-2xl bg-stone-200 animate-pulse" />
+                              ))
+                            : normalizedCategories.map((c) => (
+                                  <div key={c.id} className="group cursor-pointer relative overflow-hidden rounded-2xl shadow-md hover:shadow-xl transition-shadow duration-500">
+                                      <img src={c.img} alt={c.label} className="h-80 w-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                                      <div className="absolute inset-0 bg-gradient-to-t from-stone-900/70 via-stone-900/10 to-transparent" />
+                                      <div className="absolute bottom-0 left-0 right-0 p-4 text-center">
+                                          <h3 className="text-white font-serif font-semibold text-base tracking-wide drop-shadow">{c.label}</h3>
+                                          <span className="mt-1 inline-block text-xs font-sans text-rose-200 uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity duration-300">Shop Now →</span>
+                                      </div>
+                                  </div>
+                              ))}
                     </div>
                 </div>
             </section>
 
-            {/* ── NEW ARRIVALS ── */}
+            {/* ── NEW ARRIVALS (live: latest products) ── */}
             <section className="py-20 bg-white">
                 <div className="max-w-7xl mx-auto px-4">
                     <div className="flex items-end justify-between mb-10">
@@ -232,32 +285,43 @@ export default function HomePage() {
                         </div>
                         <div className="flex items-center gap-3">
                             <button
-                                onClick={() => scrollCarousel(newRef, -1, setNewIdx, newArrivals.length)}
+                                onClick={() => scrollCarousel(newRef, -1, setNewIdx, normalizedNewArrivals.length)}
                                 className="w-9 h-9 rounded-full border border-stone-300 flex items-center justify-center text-stone-600 hover:bg-rose-600 hover:text-white hover:border-rose-600 transition"
                             >‹</button>
                             <button
-                                onClick={() => scrollCarousel(newRef, 1, setNewIdx, newArrivals.length)}
+                                onClick={() => scrollCarousel(newRef, 1, setNewIdx, normalizedNewArrivals.length)}
                                 className="w-9 h-9 rounded-full border border-stone-300 flex items-center justify-center text-stone-600 hover:bg-rose-600 hover:text-white hover:border-rose-600 transition"
                             >›</button>
                             <a href="#" className="text-sm font-sans text-rose-700 hover:underline ml-2 hidden sm:block">View All →</a>
                         </div>
                     </div>
+
+                    {latestError && (
+                        <p className="text-sm font-sans text-rose-500 mb-4">Couldn't load new arrivals right now.</p>
+                    )}
+
                     <div
                         ref={newRef}
                         className="flex gap-5 overflow-x-auto snap-x snap-mandatory scroll-smooth pb-4"
                         style={{ scrollbarWidth: "none" }}
                     >
-                        {newArrivals.map((p, i) => (
-                            <ProductCard key={i} p={p} i={i + 100} wishlist={wishlist} toggle={toggle} showSize={true} />
-                        ))}
+                        {latestLoading
+                            ? [...Array(4)].map((_, i) => <ProductCardSkeleton key={i} />)
+                            : normalizedNewArrivals.length === 0
+                            ? <p className="text-sm font-sans text-stone-400 py-10">No new arrivals yet — check back soon.</p>
+                            : normalizedNewArrivals.map((p, i) => (
+                                  <ProductCard key={p.id ?? i} p={p} i={`new-${p.id ?? i}`} wishlist={wishlist} toggle={toggle} showSize={true} />
+                              ))}
                     </div>
                     {/* Dots */}
-                    <div className="flex justify-center gap-2 mt-5">
-                        {newArrivals.map((_, i) => (
-                            <button key={i} onClick={() => setNewIdx(i)}
-                                className={`rounded-full transition-all duration-300 ${newIdx === i ? "bg-rose-600 w-6 h-2" : "bg-stone-300 w-2 h-2"}`} />
-                        ))}
-                    </div>
+                    {!latestLoading && normalizedNewArrivals.length > 0 && (
+                        <div className="flex justify-center gap-2 mt-5">
+                            {normalizedNewArrivals.map((_, i) => (
+                                <button key={i} onClick={() => setNewIdx(i)}
+                                    className={`rounded-full transition-all duration-300 ${newIdx === i ? "bg-rose-600 w-6 h-2" : "bg-stone-300 w-2 h-2"}`} />
+                            ))}
+                        </div>
+                    )}
                 </div>
             </section>
 
@@ -284,7 +348,7 @@ export default function HomePage() {
                 </div>
             </section>
 
-            {/* ── FEATURED COLLECTION CAROUSEL ── */}
+            {/* ── FEATURED COLLECTION CAROUSEL (live) ── */}
             <section className="py-20 bg-[#fdf8f5]">
                 <div className="max-w-7xl mx-auto px-4">
                     <div className="flex items-end justify-between mb-10">
@@ -295,31 +359,42 @@ export default function HomePage() {
                         </div>
                         <div className="flex items-center gap-3">
                             <button
-                                onClick={() => scrollCarousel(featuredRef, -1, setFeatIdx, featured.length)}
+                                onClick={() => scrollCarousel(featuredRef, -1, setFeatIdx, normalizedFeatured.length)}
                                 className="w-9 h-9 rounded-full border border-stone-300 flex items-center justify-center text-stone-600 hover:bg-rose-600 hover:text-white hover:border-rose-600 transition"
                             >‹</button>
                             <button
-                                onClick={() => scrollCarousel(featuredRef, 1, setFeatIdx, featured.length)}
+                                onClick={() => scrollCarousel(featuredRef, 1, setFeatIdx, normalizedFeatured.length)}
                                 className="w-9 h-9 rounded-full border border-stone-300 flex items-center justify-center text-stone-600 hover:bg-rose-600 hover:text-white hover:border-rose-600 transition"
                             >›</button>
                             <a href="#" className="text-sm font-sans text-rose-700 hover:underline ml-2 hidden sm:block">View All →</a>
                         </div>
                     </div>
+
+                    {featuredError && (
+                        <p className="text-sm font-sans text-rose-500 mb-4">Couldn't load the featured collection right now.</p>
+                    )}
+
                     <div
                         ref={featuredRef}
                         className="flex gap-5 overflow-x-auto snap-x snap-mandatory scroll-smooth pb-4"
                         style={{ scrollbarWidth: "none" }}
                     >
-                        {featured.map((p, i) => (
-                            <ProductCard key={i} p={p} i={i} wishlist={wishlist} toggle={toggle} showSize={true} />
-                        ))}
+                        {featuredLoading
+                            ? [...Array(4)].map((_, i) => <ProductCardSkeleton key={i} />)
+                            : normalizedFeatured.length === 0
+                            ? <p className="text-sm font-sans text-stone-400 py-10">No featured products yet.</p>
+                            : normalizedFeatured.map((p, i) => (
+                                  <ProductCard key={p.id ?? i} p={p} i={`feat-${p.id ?? i}`} wishlist={wishlist} toggle={toggle} showSize={true} />
+                              ))}
                     </div>
-                    <div className="flex justify-center gap-2 mt-5">
-                        {featured.map((_, i) => (
-                            <button key={i} onClick={() => setFeatIdx(i)}
-                                className={`rounded-full transition-all duration-300 ${featIdx === i ? "bg-rose-600 w-6 h-2" : "bg-stone-300 w-2 h-2"}`} />
-                        ))}
-                    </div>
+                    {!featuredLoading && normalizedFeatured.length > 0 && (
+                        <div className="flex justify-center gap-2 mt-5">
+                            {normalizedFeatured.map((_, i) => (
+                                <button key={i} onClick={() => setFeatIdx(i)}
+                                    className={`rounded-full transition-all duration-300 ${featIdx === i ? "bg-rose-600 w-6 h-2" : "bg-stone-300 w-2 h-2"}`} />
+                            ))}
+                        </div>
+                    )}
                 </div>
             </section>
 
@@ -391,34 +466,23 @@ export default function HomePage() {
                 <div className="max-w-7xl mx-auto px-4">
                     <SectionHead eyebrow="Follow Us" title="@husnya_chikankari" />
                     <div className="grid grid-cols-2 md:grid-cols-4 md:grid-rows-2 gap-3 md:h-[480px]">
-                        <div className="group relative overflow-hidden rounded-2xl md:row-span-2 cursor-pointer">
-                            <img src={pureLucknavi} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-700" />
-                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center">
-                                <span className="text-white text-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300">📷</span>
-                            </div>
-                        </div>
-                        <div className="group relative overflow-hidden rounded-2xl cursor-pointer">
-                            <img src={GeorgetteAnarkali} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-700" />
-                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center">
-                                <span className="text-white text-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300">📷</span>
-                            </div>
-                        </div>
-                        <div className="group relative overflow-hidden rounded-2xl cursor-pointer md:col-span-2 md:row-span-2">
-                            <img src={Saree} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-700" />
-                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center">
-                                <span className="text-white text-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300">📷</span>
-                            </div>
-                        </div>
-                        <div className="group relative overflow-hidden rounded-2xl cursor-pointer">
-                            <img src={ChikankariSuits} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-700" />
-                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center">
-                                <span className="text-white text-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300">📷</span>
-                            </div>
-                        </div>
+                        {(normalizedFeatured.length > 0 ? normalizedFeatured : normalizedNewArrivals)
+                            .slice(0, 4)
+                            .map((p, idx) => {
+                                const spanClass =
+                                    idx === 0 ? "md:row-span-2" : idx === 2 ? "md:col-span-2 md:row-span-2" : "";
+                                return (
+                                    <div key={p.id ?? idx} className={`group relative overflow-hidden rounded-2xl cursor-pointer ${spanClass}`}>
+                                        <img src={p.img} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-700" alt={p.name} />
+                                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center">
+                                            <span className="text-white text-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300">📷</span>
+                                        </div>
+                                    </div>
+                                );
+                            })}
                     </div>
                     <div className="text-center mt-8">
-                        
-                           <a href="https://www.instagram.com/husnya_chikankari/"
+                        <a href="https://www.instagram.com/husnya_chikankari/"
                             target="_blank"
                             rel="noopener noreferrer"
                             className="inline-block border border-stone-800 text-stone-800 hover:bg-stone-800 hover:text-white font-sans font-semibold text-xs uppercase tracking-widest px-8 py-3 rounded-full transition-colors duration-300"
