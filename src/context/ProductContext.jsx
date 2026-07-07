@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useReducer, useCallback } from "react";
-import { fetchAllCategories, fetchLatestProducts as apiLatest, fetchFeaturedProducts as apiFeatured, fetchProductsByCategory as apiByCategory, fetchAllProducts as apiAllProducts, } from "../services/Productservice";
+import { fetchAllCategories, fetchLatestProducts as apiLatest, fetchFeaturedProducts as apiFeatured, fetchProductsByCategory as apiByCategory, fetchAllProducts as apiAllProducts, fetchProductBySlug as apiProductBySlug, } from "../services/Productservice";
 
 const initialState = {
     categories: [],
@@ -8,6 +8,13 @@ const initialState = {
     productsByCategory: {},
     allProducts: [],
     pagination: {},
+    singleProduct: null,
+    loading: {
+        singleProduct: false,
+    },
+    errors: {
+        singleProduct: null,
+    },
     loading: {
         categories: false,
         latest: false,
@@ -79,6 +86,12 @@ function reducer(state, action) {
             return { ...state, loading: { ...state.loading, allProducts: false }, allProducts: action.payload };
         case "FETCH_ALL_ERROR":
             return { ...state, loading: { ...state.loading, allProducts: false }, errors: { ...state.errors, allProducts: action.payload } };
+        case "FETCH_SINGLE_START":
+            return { ...state, loading: { ...state.loading, singleProduct: true }, errors: { ...state.errors, singleProduct: null } };
+        case "FETCH_SINGLE_SUCCESS":
+            return { ...state, loading: { ...state.loading, singleProduct: false }, singleProduct: action.payload };
+        case "FETCH_SINGLE_ERROR":
+            return { ...state, loading: { ...state.loading, singleProduct: false }, errors: { ...state.errors, singleProduct: action.payload } };
 
         default:
             return state;
@@ -103,7 +116,15 @@ export function ProductProvider({ children }) {
             dispatch({ type: "FETCH_CATEGORIES_ERROR", payload: err.message });
         }
     }, []);
-
+    const fetchProductBySlug = useCallback(async (slug) => {
+        dispatch({ type: "FETCH_SINGLE_START" });
+        try {
+            const { data } = await apiProductBySlug(slug);
+            dispatch({ type: "FETCH_SINGLE_SUCCESS", payload: data.data || null });
+        } catch (err) {
+            dispatch({ type: "FETCH_SINGLE_ERROR", payload: err.message });
+        }
+    }, []);
     // ── Fetch latest N products
     const fetchLatestProducts = useCallback(async (limit = 12) => {
         dispatch({ type: "FETCH_LATEST_START" });
@@ -126,7 +147,6 @@ export function ProductProvider({ children }) {
         }
     }, []);
 
-    // ── Fetch products for a specific category (supports pagination + loadMore)
     const fetchProductsByCategory = useCallback(
         async (categoryId, { page = 1, limit = 10, append = false } = {}) => {
             dispatch({ type: "FETCH_BY_CATEGORY_START", categoryId });
@@ -196,6 +216,7 @@ export function ProductProvider({ children }) {
         isLoadingCategory: (categoryId) => state.loading.byCategory[categoryId] || false,
         getCategoryError: (categoryId) => state.errors.byCategory[categoryId] || null,
         getPagination: (categoryId) => state.pagination[categoryId] || {},
+        fetchProductBySlug,
     };
 
     return <ProductContext.Provider value={value}>{children}</ProductContext.Provider>;
@@ -207,8 +228,6 @@ export function useProducts() {
     if (!ctx) throw new Error("useProducts must be used inside <ProductProvider>");
     return ctx;
 }
-
-// ─── Focused hooks ────────────────────────────────────────────────────────────
 
 export function useCategories() {
     const { categories, loading, errors, fetchCategories } = useProducts();
@@ -248,4 +267,12 @@ export function useCategoryProducts(categoryId) {
         loadMore,
         refetch: () => fetchProductsByCategory(categoryId),
     };
+}
+
+export function useSingleProduct(slug) {
+    const { singleProduct, loading, errors, fetchProductBySlug } = useProducts();
+    useEffect(() => {
+        if (slug) fetchProductBySlug(slug);
+    }, [slug]);
+    return { product: singleProduct, loading: loading.singleProduct, error: errors.singleProduct };
 }

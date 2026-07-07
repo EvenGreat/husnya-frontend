@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import Logo from "../assets/husnya_logo_clean.png";
+import Logo from "../assets/image-BxWquH4V.png";
 
 const navItems = [
     {

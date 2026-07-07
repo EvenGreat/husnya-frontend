@@ -1,11 +1,7 @@
 import { useEffect, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import HeroSlider from "../components/Heroslider";
 import { useCategories, useLatestProducts, useFeaturedProducts } from "../context/ProductContext";
-// ⬆️ Adjust this import path to match where you placed the ProductContext.jsx
-// from your project (the file that exports ProductProvider / useCategories /
-// useLatestProducts / useFeaturedProducts / useCategoryProducts).
-
-// Fallback image used only if a product/category from the API has no image.
 import fallbackImg from "../assets/image-sample/chikankari suit.jpg";
 
 const testimonials = [
@@ -24,9 +20,6 @@ const trust = [
 const sizes = ["XS", "S", "M", "L", "XL"];
 const colors = ["bg-rose-300", "bg-stone-300", "bg-amber-200", "bg-emerald-200", "bg-indigo-200"];
 
-/* ── Helpers to normalize whatever shape the API returns into what the UI needs ──
-   Adjust the field names inside these two functions if your actual API response
-   uses different keys (e.g. p.title instead of p.name). */
 function formatPrice(n) {
     if (n === undefined || n === null || isNaN(n)) return null;
     return `₹${Number(n).toLocaleString("en-IN")}`;
@@ -35,16 +28,14 @@ function formatPrice(n) {
 function normalizeProduct(p) {
     const price = p.price ?? p.sellingPrice ?? p.discountPrice ?? null;
     const original = p.mrp ?? p.originalPrice ?? p.compareAtPrice ?? null;
-    const discountPercent =
-        price && original && original > price
-            ? Math.round(((original - price) / original) * 100)
-            : null;
+    const discountPercent = price && original && original > price ? Math.round(((original - price) / original) * 100) : null;
 
     const createdAt = p.createdAt ? new Date(p.createdAt) : null;
     const isNew = createdAt ? Date.now() - createdAt.getTime() < 14 * 86400000 : false;
 
     return {
         id: p._id || p.id,
+        slug: p.slug,
         name: p.name || p.title || "Untitled Product",
         price: formatPrice(price),
         original: formatPrice(original),
@@ -133,7 +124,7 @@ function ProductCard({ p, i, wishlist, toggle, showSize = false }) {
     const [selColor, setSelColor] = useState(null);
     return (
         <div className="group shrink-0 w-64 md:w-72 rounded-2xl overflow-hidden border border-stone-100 hover:shadow-2xl transition-all duration-500 bg-white flex flex-col">
-            <div className="relative overflow-hidden">
+            <Link to={`/product/${p.slug}`} className="relative overflow-hidden block">
                 <img src={p.img} alt={p.name} className="w-full h-72 object-cover group-hover:scale-105 transition-transform duration-700" />
                 {/* Badges row */}
                 <div className="absolute top-3 left-3 flex flex-col gap-1">
@@ -143,7 +134,7 @@ function ProductCard({ p, i, wishlist, toggle, showSize = false }) {
                     {p.tag && <span className="bg-indigo-500 text-white text-xs font-sans font-bold px-3 py-0.5 rounded-full shadow">{p.tag}</span>}
                 </div>
                 <button
-                    onClick={() => toggle(i)}
+                    onClick={(e) => { e.preventDefault(); toggle(i); }}
                     className="absolute top-3 right-3 w-9 h-9 rounded-full bg-white/90 shadow-md flex items-center justify-center text-base transition hover:scale-110 hover:bg-rose-50"
                 >
                     {wishlist.includes(i) ? "❤️" : "🤍"}
@@ -151,9 +142,11 @@ function ProductCard({ p, i, wishlist, toggle, showSize = false }) {
                 <div className="absolute inset-x-0 bottom-0 translate-y-full group-hover:translate-y-0 transition-transform duration-300 bg-rose-700/90 py-2.5 text-center">
                     <span className="text-white text-xs font-sans font-semibold tracking-widest uppercase">Quick View</span>
                 </div>
-            </div>
+            </Link>
             <div className="p-4 flex flex-col gap-3 flex-1">
-                <h3 className="text-sm font-serif font-semibold text-stone-700 leading-snug">{p.name}</h3>
+                <Link to={`/product/${p.slug}`}>
+                    <h3 className="text-sm font-serif font-semibold text-stone-700 leading-snug hover:text-rose-700 transition">{p.name}</h3>
+                </Link>
                 {/* Color swatches */}
                 <div className="flex gap-1.5">
                     {colors.map((c, ci) => (
@@ -191,12 +184,12 @@ function ProductCard({ p, i, wishlist, toggle, showSize = false }) {
 }
 
 export default function HomePage() {
-    // ── Live data from ProductContext (replaces the old static arrays) ──
+    // ── Live data from ProductContext ──
     const { categories, loading: categoriesLoading, error: categoriesError } = useCategories();
     const { products: latestProducts, loading: latestLoading, error: latestError } = useLatestProducts();
     const { products: featuredProducts, loading: featuredLoading, error: featuredError } = useFeaturedProducts();
 
-    const normalizedCategories = categories.map(normalizeCategory);
+    const normalizedCategories = categories.slice(0, 4).map(normalizeCategory);
     const normalizedFeatured = featuredProducts.map(normalizeProduct);
     const normalizedNewArrivals = latestProducts.map(normalizeProduct);
 
@@ -258,18 +251,22 @@ export default function HomePage() {
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
                         {categoriesLoading
                             ? [...Array(4)].map((_, i) => (
-                                  <div key={i} className="h-80 w-full rounded-2xl bg-stone-200 animate-pulse" />
-                              ))
+                                <div key={i} className="h-80 w-full rounded-2xl bg-stone-200 animate-pulse" />
+                            ))
                             : normalizedCategories.map((c) => (
-                                  <div key={c.id} className="group cursor-pointer relative overflow-hidden rounded-2xl shadow-md hover:shadow-xl transition-shadow duration-500">
-                                      <img src={c.img} alt={c.label} className="h-80 w-full object-cover group-hover:scale-105 transition-transform duration-700" />
-                                      <div className="absolute inset-0 bg-gradient-to-t from-stone-900/70 via-stone-900/10 to-transparent" />
-                                      <div className="absolute bottom-0 left-0 right-0 p-4 text-center">
-                                          <h3 className="text-white font-serif font-semibold text-base tracking-wide drop-shadow">{c.label}</h3>
-                                          <span className="mt-1 inline-block text-xs font-sans text-rose-200 uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity duration-300">Shop Now →</span>
-                                      </div>
-                                  </div>
-                              ))}
+                                <Link
+                                    to={`/category/${c.id}`}
+                                    key={c.id}
+                                    className="group cursor-pointer relative overflow-hidden rounded-2xl shadow-md hover:shadow-xl transition-shadow duration-500 block"
+                                >
+                                    <img src={c.img} alt={c.label} className="h-80 w-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-stone-900/70 via-stone-900/10 to-transparent" />
+                                    <div className="absolute bottom-0 left-0 right-0 p-4 text-center">
+                                        <h3 className="text-white font-serif font-semibold text-base tracking-wide drop-shadow">{c.label}</h3>
+                                        <span className="mt-1 inline-block text-xs font-sans text-rose-200 uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity duration-300">Shop Now →</span>
+                                    </div>
+                                </Link>
+                            ))}
                     </div>
                 </div>
             </section>
@@ -308,10 +305,10 @@ export default function HomePage() {
                         {latestLoading
                             ? [...Array(4)].map((_, i) => <ProductCardSkeleton key={i} />)
                             : normalizedNewArrivals.length === 0
-                            ? <p className="text-sm font-sans text-stone-400 py-10">No new arrivals yet — check back soon.</p>
-                            : normalizedNewArrivals.map((p, i) => (
-                                  <ProductCard key={p.id ?? i} p={p} i={`new-${p.id ?? i}`} wishlist={wishlist} toggle={toggle} showSize={true} />
-                              ))}
+                                ? <p className="text-sm font-sans text-stone-400 py-10">No new arrivals yet — check back soon.</p>
+                                : normalizedNewArrivals.map((p, i) => (
+                                    <ProductCard key={p.id ?? i} p={p} i={`new-${p.id ?? i}`} wishlist={wishlist} toggle={toggle} showSize={true} />
+                                ))}
                     </div>
                     {/* Dots */}
                     {!latestLoading && normalizedNewArrivals.length > 0 && (
@@ -334,7 +331,6 @@ export default function HomePage() {
                         <p className="font-sans text-rose-200 uppercase tracking-[0.25em] text-xs mb-2">Limited Time</p>
                         <h3 className="text-4xl font-serif font-bold mb-1">Bridal Season Sale</h3>
                         <p className="text-rose-100 font-sans text-sm mb-5">Up to 60% off on Bridal Lehengas & Anarkali Sets</p>
-                        {/* Countdown */}
                         <div className="flex gap-3">
                             <CountdownBox val={d} label="Days" />
                             <CountdownBox val={h} label="Hrs" />
@@ -382,10 +378,10 @@ export default function HomePage() {
                         {featuredLoading
                             ? [...Array(4)].map((_, i) => <ProductCardSkeleton key={i} />)
                             : normalizedFeatured.length === 0
-                            ? <p className="text-sm font-sans text-stone-400 py-10">No featured products yet.</p>
-                            : normalizedFeatured.map((p, i) => (
-                                  <ProductCard key={p.id ?? i} p={p} i={`feat-${p.id ?? i}`} wishlist={wishlist} toggle={toggle} showSize={true} />
-                              ))}
+                                ? <p className="text-sm font-sans text-stone-400 py-10">No featured products yet.</p>
+                                : normalizedFeatured.map((p, i) => (
+                                    <ProductCard key={p.id ?? i} p={p} i={`feat-${p.id ?? i}`} wishlist={wishlist} toggle={toggle} showSize={true} />
+                                ))}
                     </div>
                     {!featuredLoading && normalizedFeatured.length > 0 && (
                         <div className="flex justify-center gap-2 mt-5">
