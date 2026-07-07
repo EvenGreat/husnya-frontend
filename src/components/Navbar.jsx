@@ -1,60 +1,25 @@
 import { useState, useRef } from "react";
 import Logo from "../assets/image-BxWquH4V.png";
+import { useCategories } from "../context/ProductContext";
+import { Link } from "react-router-dom";
 
 const navItems = [
     {
         label: "Home",
-        href: "#",
+        href: "/",
         dropdown: [
             { label: "About Us", href: "#" },
             { label: "Our Story", href: "#" },
             { label: "Contact Us", href: "#" },
         ],
     },
-    { label: "NEW ARRIVALS SS'26", href: "#", highlight: "new" },
-    { label: "Summer Sale", href: "#", highlight: "sale" },
+    { label: "NEW ARRIVALS", href: "#", highlight: "new" },
     { label: "Best Sellers", href: "#" },
-    {
-        label: "Baarat Ready",
-        href: "#",
-        dropdown: [
-            { label: "Cocktail", href: "#" },
-            { label: "Mehfil-e-Mehendi", href: "#" },
-            { label: "Phoolo ki Haldi", href: "#" },
-            { label: "Shaandaar Sangeet", href: "#" },
-            { label: "Sagna Di Shaam", href: "#" },
-            { label: "Gift Cards", href: "#" },
-        ],
-    },
     { label: "Styles under ₹5999", href: "#" },
     {
         label: "Shop By Category",
         href: "#",
         mega: true,
-        columns: [
-            {
-                title: "Ethnic Wear",
-                links: [
-                    { label: "Chikankari Suits", href: "#" },
-                    { label: "Women Kurtis", href: "#" },
-                ],
-            },
-            {
-                title: "Fusion & Modern",
-                links: [
-                    { label: "Fusion Sets", href: "#" },
-                    { label: "Co-Ord Sets", href: "#" },
-                ],
-            },
-            {
-                title: "More",
-                links: [
-                    { label: "Kids Ethnic", href: "#" },
-                    { label: "🚚 Ready to Ship", href: "#" },
-                    { label: "Shop All", href: "#" },
-                ],
-            },
-        ],
     },
 ];
 
@@ -72,6 +37,7 @@ export default function Header() {
     const [activeNav, setActiveNav] = useState(null);
     const [searchOpen, setSearchOpen] = useState(false);
     const timeoutRef = useRef(null);
+    const { categories, loading: categoriesLoading } = useCategories();
 
     const handleMouseEnter = (label) => {
         clearTimeout(timeoutRef.current);
@@ -110,7 +76,7 @@ export default function Header() {
 
             {/* ── MAIN HEADER ── */}
             <header
-                className={`bg-white shadow-sm ${mobileOpen ? "hidden" : "sticky top-0 z-50"
+                className={`bg-white shadow-sm ${mobileOpen ? "hidden" : "sticky top-0 z-100"
                     }`}
             >
                 {/* ── TOP ROW ── */}
@@ -118,7 +84,7 @@ export default function Header() {
                     <div className="max-w-7xl mx-auto px-4 flex items-center justify-center gap-8 h-24">
 
                         {/* Logo */}
-                        <a href="#" className="flex-shrink-0">
+                        <a href="/" className="flex-shrink-0">
                             <img src={Logo} alt="Husnya Fashion House"
                                 className="h-18 object-contain mt-1"
                             />
@@ -126,26 +92,111 @@ export default function Header() {
 
                         {/* Desktop Menu */}
                         <div className="hidden lg:flex items-center gap-6">
-                            {navItems.map((item) => (
-                                <a
-                                    key={item.label}
-                                    href={item.href}
-                                    className={`text-[13px] font-semibold uppercase tracking-wide whitespace-nowrap transition
-            ${item.highlight === "sale"
-                                            ? "text-rose-600"
-                                            : item.highlight === "new"
-                                                ? "text-emerald-600"
-                                                : "text-stone-700 hover:text-rose-700"
-                                        }`}
-                                >
-                                    {item.label}
-                                </a>
-                            ))}
+                            {navItems.map((item) => {
+                                const hasPanel = Boolean(item.dropdown || item.mega);
+                                const isActive = activeNav === item.label;
+
+                                return (
+                                    <div
+                                        key={item.label}
+                                        className="relative"
+                                        onMouseEnter={() => hasPanel && handleMouseEnter(item.label)}
+                                        onMouseLeave={() => hasPanel && handleMouseLeave()}
+                                    >
+                                        <a
+                                            href={item.href}
+                                            className={`nav-link relative flex items-center gap-1 py-8 text-[13px] font-semibold uppercase tracking-wide whitespace-nowrap transition
+                                                ${isActive ? "active" : ""}
+                                                ${item.highlight === "sale"
+                                                    ? "text-rose-600"
+                                                    : item.highlight === "new"
+                                                        ? "text-emerald-600"
+                                                        : "text-stone-700 hover:text-rose-700"
+                                                }`}
+                                        >
+                                            {item.label}
+                                            {hasPanel && (
+                                                <svg
+                                                    className={`w-3 h-3 transition-transform duration-200 ${isActive ? "rotate-180" : ""}`}
+                                                    fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                                                >
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
+                                                </svg>
+                                            )}
+                                        </a>
+
+                                        {/* Simple dropdown */}
+                                        {item.dropdown && isActive && (
+                                            <div className="fade-down absolute top-full left-1/2 -translate-x-1/2 pt-2 z-50">
+                                                <div className="bg-white rounded-xl shadow-xl border border-stone-100 py-2 min-w-[200px]">
+                                                    {item.dropdown.map((d) => (
+                                                        <a
+                                                            key={d.label}
+                                                            href={d.href}
+                                                            className="flex items-center gap-2 px-5 py-2.5 text-[13px] font-medium text-stone-600 hover:text-rose-700 hover:bg-rose-50 transition whitespace-nowrap"
+                                                        >
+                                                            <span className="w-1 h-1 rounded-full bg-amber-400" />
+                                                            {d.label}
+                                                        </a>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Mega menu — real categories from ProductContext */}
+                                        {item.mega && isActive && (
+                                            <div className="fade-down absolute top-full left-1/2 -translate-x-1/2 pt-2 z-50">
+                                                <div className="bg-white rounded-xl shadow-xl border border-stone-100 p-8 w-[520px]">
+                                                    <div className="text-[11px] font-black uppercase tracking-widest text-amber-600 mb-4 pb-2 border-b border-stone-100">
+                                                        Shop By Category
+                                                    </div>
+
+                                                    {categoriesLoading ? (
+                                                        <div className="grid grid-cols-3 gap-x-8 gap-y-3">
+                                                            {Array.from({ length: 6 }).map((_, i) => (
+                                                                <span key={i} className="h-3 w-20 rounded bg-stone-100 animate-pulse" />
+                                                            ))}
+                                                        </div>
+                                                    ) : categories.length === 0 ? (
+                                                        <div className="text-[13px] text-stone-400 py-4 text-center">
+                                                            No categories available
+                                                        </div>
+                                                    ) : (
+                                                        <div className="grid grid-cols-3 gap-x-8 gap-y-3">
+                                                            {categories.map((cat) => (
+                                                                <a
+                                                                    key={cat._id}
+                                                                    to={`/category/${cat.slug || cat._id}`}
+                                                                    className="flex items-center gap-2 text-[13px] font-medium text-stone-600 hover:text-rose-700 transition"
+                                                                >
+                                                                    <span className="w-1 h-1 rounded-full bg-rose-300 flex-shrink-0" />
+                                                                    <span className="truncate">{cat.name}</span>
+                                                                </a>
+                                                            ))}
+                                                        </div>
+                                                    )}
+
+                                                    <a
+                                                        href="/products"
+                                                        className="block mt-5 pt-4 border-t border-stone-100 text-center text-[12px] font-bold text-rose-700 hover:text-rose-800 uppercase tracking-widest transition"
+                                                    >
+                                                        Shop All Products →
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                );
+                            })}
                         </div>
 
                         {/* Right Icons */}
                         <div className="hidden lg:flex items-center gap-3">
-                            <button className="p-2">
+                            <button
+                                className="p-2"
+                                onClick={() => setSearchOpen((s) => !s)}
+                                aria-label="Toggle search"
+                            >
                                 🔍
                             </button>
 
@@ -183,6 +234,34 @@ export default function Header() {
                         </div>
                     </div>
                 </div>
+
+                {/* ── DESKTOP SEARCH BAR ── */}
+                {searchOpen && (
+                    <div className="hidden lg:block border-b border-stone-100 bg-stone-50 fade-down">
+                        <div className="max-w-7xl mx-auto px-4 py-4">
+                            <div className="flex items-center gap-3 bg-white rounded-full px-5 py-3 shadow-sm border border-stone-200 focus-within:ring-1 focus-within:ring-rose-300 transition max-w-xl mx-auto">
+                                <svg className="w-4 h-4 text-stone-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
+                                </svg>
+                                <input
+                                    type="text"
+                                    autoFocus
+                                    placeholder="Search suits, kurtis…"
+                                    className="bg-transparent text-sm outline-none flex-1 text-stone-600 placeholder-stone-400"
+                                />
+                                <button
+                                    onClick={() => setSearchOpen(false)}
+                                    className="text-stone-400 hover:text-rose-700 transition flex-shrink-0"
+                                    aria-label="Close search"
+                                >
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </header>
 
             {/* ── MOBILE DRAWER ── */}
@@ -262,18 +341,27 @@ export default function Header() {
 
                                     {item.mega && openMobile === item.label && (
                                         <div className="bg-amber-50/50 px-5 pb-3 border-t border-amber-100">
-                                            {item.columns.map((col) => (
-                                                <div key={col.title} className="mt-3">
-                                                    <div className="text-[10px] font-black uppercase tracking-widest text-amber-600 mb-2">{col.title}</div>
-                                                    {col.links.map((l) => (
-                                                        <a key={l.label} href={l.href}
-                                                            className="flex items-center gap-2 py-2 text-xs text-stone-600 hover:text-rose-700 border-b border-stone-100 last:border-0">
-                                                            <span className="w-1 h-1 rounded-full bg-rose-300" />
-                                                            {l.label}
-                                                        </a>
-                                                    ))}
+                                            {categoriesLoading ? (
+                                                <div className="py-3 text-sm text-stone-500">
+                                                    Loading...
                                                 </div>
-                                            ))}
+                                            ) : categories.length === 0 ? (
+                                                <div className="py-3 text-sm text-stone-500">
+                                                    No categories found
+                                                </div>
+                                            ) : (
+                                                categories.map((cat) => (
+                                                    <Link
+                                                        key={cat._id}
+                                                        to={`/category/${cat.slug || cat._id}`}
+                                                        onClick={() => setMobileOpen(false)}
+                                                        className="flex items-center gap-2 py-3 text-sm text-stone-700 hover:text-rose-700 border-b border-stone-100 last:border-0"
+                                                    >
+                                                        <span className="w-1 h-1 rounded-full bg-rose-400"></span>
+                                                        {cat.name}
+                                                    </Link>
+                                                ))
+                                            )}
                                         </div>
                                     )}
                                 </div>

@@ -197,12 +197,6 @@ export default function HeroSlider() {
                     {" "}/{" "}
                     {String(slides.length).padStart(2, "0")}
                 </div>
-
-                {/* Progress bar */}
-                <div
-                    className="absolute bottom-0 left-0 h-0.5 bg-rose-500 z-40 transition-none"
-                    style={{ width: `${progress}%` }}
-                />
             </section>
 
             {/* Keyframe animation */}
