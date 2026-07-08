@@ -13,8 +13,8 @@ export const fetchAllProducts = (params = {}) => {
 }
 
 export const fetchProductBySlug = (slug) => {
-    apiAdmin.get(`/prod/${slug}`);
-}
+    return apiAdmin.get(`/prod/${slug}`);
+};
 
 export const fetchLatestProducts = (limit = 12) => {
     return apiAdmin.get("/prod/get/all/products", {
