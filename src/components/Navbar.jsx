@@ -1,7 +1,7 @@
 import { useState, useRef } from "react";
 import Logo from "../assets/image-BxWquH4V.png";
 import { useCategories } from "../context/ProductContext";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const navItems = [
     {
@@ -32,6 +32,7 @@ const announcements = [
 ];
 
 export default function Header() {
+    const navigate = useNavigate();
     const [mobileOpen, setMobileOpen] = useState(false);
     const [openMobile, setOpenMobile] = useState(null);
     const [activeNav, setActiveNav] = useState(null);
@@ -199,8 +200,10 @@ export default function Header() {
                             >
                                 🔍
                             </button>
-
-                            <button className="p-2">
+                            <button
+                                className="p-2"
+                                onClick={() => navigate("/reg")}
+                            >
                                 👤
                             </button>
 

@@ -4,6 +4,7 @@ import CategoryPage from "./pages/CategoryPage";
 import ProductDetailPage from "./pages/ProductDetailPage";
 import Header from "./components/Navbar";
 import Footer from "./components/Footer";
+import Register from "./pages/customer/Register";
 
 function App() {
   return (
@@ -13,6 +14,7 @@ function App() {
         <Route path="/" element={<HomePage />} />
         <Route path="/category/:categoryId" element={<CategoryPage />} />
         <Route path="/product/:slug" element={<ProductDetailPage />} />
+        <Route path="/reg" element={<Register />} />
       </Routes>
       <Footer />
     </>

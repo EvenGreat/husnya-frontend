@@ -31,7 +31,6 @@ function swatchColor(name) {
     return COLOR_SWATCHES[name?.toLowerCase()] || "#D6D3D1";
 }
 
-// Sum of stock across every size in a color group
 function colorStock(colorGroup) {
     return (colorGroup?.sizes || []).reduce((sum, s) => sum + (Number(s.stock) || 0), 0);
 }
@@ -47,7 +46,10 @@ export default function ProductDetailPage() {
     const [activeSizeIdx, setActiveSizeIdx] = useState(0);
     const imgWrapRef = useRef(null);
 
-    // Each entry is now a color group: { color, images: [...], sizes: [{ size, sku, stock }] }
+    // --- Add to cart state ---
+    const [addingToCart, setAddingToCart] = useState(false);
+    const [cartMessage, setCartMessage] = useState(null); // { type: "success" | "error", text: string }
+
     const colorGroups = product?.variants?.length ? product.variants : [];
     const hasUsableVariants = colorGroups.length > 0;
 
@@ -61,24 +63,26 @@ export default function ProductDetailPage() {
         return activeColor.sizes?.[activeSizeIdx] || activeColor.sizes?.[0] || null;
     }, [activeColor, activeSizeIdx]);
 
-    // When the product loads, default to the first color that actually has stock
     useEffect(() => {
         if (!hasUsableVariants) return;
         const firstInStock = colorGroups.findIndex((g) => colorStock(g) > 0);
         setActiveColorIdx(firstInStock >= 0 ? firstInStock : 0);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [product]);
 
-    // Whenever the active color changes: pick the first in-stock size for it,
-    // and reset the gallery back to that color's first photo.
     useEffect(() => {
         if (!activeColor) return;
         const firstInStockSize = (activeColor.sizes || []).findIndex((s) => Number(s.stock) > 0);
         setActiveSizeIdx(firstInStockSize >= 0 ? firstInStockSize : 0);
         setActiveImg(0);
         setQty(1);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [activeColorIdx, activeColor]);
+
+    // Clear any cart message after a few seconds so it doesn't linger forever.
+    useEffect(() => {
+        if (!cartMessage) return;
+        const t = setTimeout(() => setCartMessage(null), 3000);
+        return () => clearTimeout(t);
+    }, [cartMessage]);
 
     if (loading) {
         return (
@@ -98,9 +102,6 @@ export default function ProductDetailPage() {
         );
     }
 
-    // Gallery shows the active color's own photos; falls back to the product's
-    // main/gallery images for non-variant products (or if a color has none, which
-    // shouldn't happen given backend validation, but keeps the page from breaking).
     const images = hasUsableVariants
         ? (activeColor?.images?.length ? activeColor.images : (product.images?.length ? product.images : [product.featuredImage]))
         : (product.images?.length ? product.images : [product.featuredImage]);
@@ -135,9 +136,45 @@ export default function ProductDetailPage() {
         setQty(1);
     }
 
+    async function handleAddToCart() {
+        if (!inStock || addingToCart) return;
+
+        setAddingToCart(true);
+        setCartMessage(null);
+
+        try {
+            const token = localStorage.getItem("token"); // adjust to however you store auth
+
+            const res = await fetch("/api/cart/add", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+                },
+                body: JSON.stringify({
+                    productId: product._id,
+                    color: hasUsableVariants ? activeColor?.color : null,
+                    size: hasUsableVariants ? activeSize?.size : null,
+                    quantity: qty,
+                }),
+            });
+
+            const data = await res.json();
+
+            if (!res.ok || !data.success) {
+                throw new Error(data.message || "Could not add item to cart");
+            }
+
+            setCartMessage({ type: "success", text: "Added to cart!" });
+        } catch (err) {
+            setCartMessage({ type: "error", text: err.message || "Something went wrong" });
+        } finally {
+            setAddingToCart(false);
+        }
+    }
+
     return (
         <div className="max-w-6xl mx-auto px-4 py-10 md:py-14">
-            {/* Breadcrumb */}
             <div className="flex items-center gap-2 text-xs text-stone-400 font-sans mb-8 uppercase tracking-wide">
                 <span>{product.category?.name || "Shop"}</span>
                 <span>/</span>
@@ -327,12 +364,23 @@ export default function ProductDetailPage() {
                             </div>
 
                             <button
-                                disabled={!inStock}
+                                onClick={handleAddToCart}
+                                disabled={!inStock || addingToCart}
                                 className="flex-1 bg-stone-800 hover:bg-rose-700 disabled:bg-stone-300 disabled:cursor-not-allowed text-white font-sans font-semibold py-3.5 rounded-xl transition-colors uppercase tracking-wide text-sm"
                             >
-                                {inStock ? "Add to Cart" : "Unavailable"}
+                                {!inStock ? "Unavailable" : addingToCart ? "Adding..." : "Add to Cart"}
                             </button>
                         </div>
+
+                        {cartMessage && (
+                            <p
+                                className={`mt-3 text-sm font-sans font-medium ${
+                                    cartMessage.type === "success" ? "text-emerald-600" : "text-rose-600"
+                                }`}
+                            >
+                                {cartMessage.text}
+                            </p>
+                        )}
                     </div>
 
                     {/* Meta */}

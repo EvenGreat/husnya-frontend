@@ -46,7 +46,7 @@ export default function CategoryPage() {
             ) : (
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
                     {normalized.map((p) => (
-                        <Link to={`/product/${p.id}`} key={p.id} className="group">
+                        <Link to={`/product/${p.slug}`} key={p.slug} className="group">
                             <div className="rounded-2xl overflow-hidden border border-stone-100 bg-white hover:shadow-xl transition-shadow duration-300">
                                 <img src={p.img} alt={p.name} className="h-72 w-full object-cover group-hover:scale-105 transition-transform duration-500" />
                                 <div className="p-4">
